@@ -10,10 +10,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import com.example.userauth.security.JwtAuthenticationFilter;
 
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 	
 	private final JwtAuthenticationFilter jwtAuthenticationFilter;

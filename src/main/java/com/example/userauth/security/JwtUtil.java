@@ -30,15 +30,24 @@ public class JwtUtil {
 		this.key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
 	}
 
-	public String generateToken(String email) {
-		return Jwts.builder().setSubject(email).setIssuedAt(new Date())
-				.setExpiration(new Date(System.currentTimeMillis() + expirationTime)).signWith(key).compact();
+	public String generateToken(String email, String role) {
+		return Jwts.builder()
+				.setSubject(email)
+				.claim("role", role)
+				.setIssuedAt(new Date())
+				.setExpiration(new Date(System.currentTimeMillis() + expirationTime))
+				.signWith(key)
+				.compact();
 	}
 
 	public String extractEmail(String token) {
 	    return parseClaims(token).getBody().getSubject();
 	}
 
+	public String extractRole(String token) {
+	    return parseClaims(token).getBody().get("role", String.class);
+	}
+	
 	public boolean validateToken(String token) {
 	    try {
 	        parseClaims(token);

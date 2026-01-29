@@ -19,7 +19,6 @@ public class UserController {
 
     @PostMapping("/register")
     public UserResponse register(@Valid @RequestBody UserRegistrationRequest request) {
-    	System.out.println("dsd");
         return userService.registerUser(request);
     }
     
@@ -29,7 +28,7 @@ public class UserController {
         return userService.login(request);
     }
     
-    @GetMapping("/me")
+    @GetMapping("/dashboard")
     public String currentUser() {
         return "Access granted to authenticated user";
     }

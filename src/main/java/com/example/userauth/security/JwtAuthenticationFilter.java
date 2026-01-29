@@ -1,8 +1,10 @@
 package com.example.userauth.security;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
@@ -33,9 +35,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 			if (jwtUtil.validateToken(token)) {
 				String email = jwtUtil.extractEmail(token);
+				String role = jwtUtil.extractRole(token);
 
-				UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email,
-						null, null);
+				UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+						email,
+						null,
+						List.of(new SimpleGrantedAuthority("ROLE_" + role)));
 
 				authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
