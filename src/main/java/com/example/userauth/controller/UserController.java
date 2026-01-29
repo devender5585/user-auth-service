@@ -1,5 +1,6 @@
 package com.example.userauth.controller;
 
+import com.example.userauth.dto.LoginRequest;
 import com.example.userauth.dto.UserRegistrationRequest;
 import com.example.userauth.dto.UserResponse;
 import com.example.userauth.service.UserService;
@@ -21,4 +22,11 @@ public class UserController {
     	System.out.println("dsd");
         return userService.registerUser(request);
     }
+    
+    
+    @PostMapping("/login")
+    public UserResponse login(@Valid @RequestBody LoginRequest request) {
+        return userService.login(request);
+    }
+
 }
