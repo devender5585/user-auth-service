@@ -28,5 +28,10 @@ public class UserController {
     public UserResponse login(@Valid @RequestBody LoginRequest request) {
         return userService.login(request);
     }
+    
+    @GetMapping("/me")
+    public String currentUser() {
+        return "Access granted to authenticated user";
+    }
 
 }

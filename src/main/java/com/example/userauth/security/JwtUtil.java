@@ -1,5 +1,8 @@
 package com.example.userauth.security;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
@@ -30,6 +33,26 @@ public class JwtUtil {
 	public String generateToken(String email) {
 		return Jwts.builder().setSubject(email).setIssuedAt(new Date())
 				.setExpiration(new Date(System.currentTimeMillis() + expirationTime)).signWith(key).compact();
+	}
+
+	public String extractEmail(String token) {
+	    return parseClaims(token).getBody().getSubject();
+	}
+
+	public boolean validateToken(String token) {
+	    try {
+	        parseClaims(token);
+	        return true;
+	    } catch (JwtException | IllegalArgumentException ex) {
+	        return false;
+	    }
+	}
+	
+	private Jws<Claims> parseClaims(String token) {
+	    return Jwts.parserBuilder()
+	            .setSigningKey(key)
+	            .build()
+	            .parseClaimsJws(token);
 	}
 
 }
