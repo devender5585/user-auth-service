@@ -10,6 +10,7 @@ import com.example.userauth.entity.User;
 import com.example.userauth.exception.EmailAlreadyExistsException;
 import com.example.userauth.exception.InvalidCredentialsException;
 import com.example.userauth.repository.UserRepository;
+import com.example.userauth.security.JwtUtil;
 import com.example.userauth.service.UserService;
 
 @Service
@@ -17,11 +18,14 @@ public class UserServiceImpl implements UserService {
 
 	private final UserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
+	private final JwtUtil jwtUtil ;
 
 	public UserServiceImpl(UserRepository userRepository,
-			PasswordEncoder passwordEncoder) {
+			PasswordEncoder passwordEncoder,
+			JwtUtil jwtUtil) {
 		this.userRepository = userRepository;
-		this.passwordEncoder =passwordEncoder;
+		this.passwordEncoder = passwordEncoder;
+		this.jwtUtil = jwtUtil;
 	}
 
 	@Override
@@ -60,12 +64,15 @@ public class UserServiceImpl implements UserService {
 	        throw new InvalidCredentialsException("Invalid email or password");
 	    }
 
+	    String token = jwtUtil.generateToken(user.getEmail());
+	    
 	    UserResponse response = new UserResponse();
 	    response.setId(user.getId());
 	    response.setName(user.getName());
 	    response.setEmail(user.getEmail());
 	    response.setRole(user.getRole());
 	    response.setStatus(user.getStatus());
+	    response.setToken(token);
 
 	    return response;
 	}

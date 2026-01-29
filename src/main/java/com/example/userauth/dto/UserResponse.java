@@ -7,6 +7,8 @@ public class UserResponse {
     private String email;
     private String role;
     private String status;
+    private String token;
+
 	public Long getId() {
 		return id;
 	}
@@ -36,6 +38,12 @@ public class UserResponse {
 	}
 	public void setStatus(String status) {
 		this.status = status;
+	}
+	public String getToken() {
+		return token;
+	}
+	public void setToken(String token) {
+		this.token = token;
 	}
 
 }
