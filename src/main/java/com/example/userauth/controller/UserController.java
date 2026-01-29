@@ -1,7 +1,7 @@
 package com.example.userauth.controller;
 
 import com.example.userauth.dto.UserRegistrationRequest;
-import com.example.userauth.entity.User;
+import com.example.userauth.dto.UserResponse;
 import com.example.userauth.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +17,7 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public User register(@Valid @RequestBody UserRegistrationRequest request) {
+    public UserResponse register(@Valid @RequestBody UserRegistrationRequest request) {
     	System.out.println("dsd");
         return userService.registerUser(request);
     }

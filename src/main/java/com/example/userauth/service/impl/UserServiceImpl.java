@@ -1,9 +1,12 @@
 package com.example.userauth.service.impl;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.example.userauth.dto.UserRegistrationRequest;
+import com.example.userauth.dto.UserResponse;
 import com.example.userauth.entity.User;
+import com.example.userauth.exception.EmailAlreadyExistsException;
 import com.example.userauth.repository.UserRepository;
 import com.example.userauth.service.UserService;
 
@@ -11,26 +14,38 @@ import com.example.userauth.service.UserService;
 public class UserServiceImpl implements UserService {
 
 	private final UserRepository userRepository;
+	private final PasswordEncoder passwordEncoder;
 
-	public UserServiceImpl(UserRepository userRepository) {
+	public UserServiceImpl(UserRepository userRepository,
+			PasswordEncoder passwordEncoder) {
 		this.userRepository = userRepository;
+		this.passwordEncoder =passwordEncoder;
 	}
 
 	@Override
-	public User registerUser(UserRegistrationRequest request) {
+	public UserResponse registerUser(UserRegistrationRequest request) {
 		
 		if (userRepository.existsByEmail(request.getEmail())) {
-			throw new RuntimeException("Email already registered");
+			throw new EmailAlreadyExistsException("Email already registered");
 		}
 
 		User user = new User();
 		user.setName(request.getName());
 		user.setEmail(request.getEmail());
-		user.setPassword(request.getPassword()); // encoder later
+		user.setPassword(passwordEncoder.encode(request.getPassword())); // password encoding
 		user.setRole("USER");
 		user.setStatus("ACTIVE");
+		
+		User savedUser = userRepository.save(user);
 
-		return userRepository.save(user);
+		UserResponse response = new UserResponse();
+		response.setId(savedUser.getId());
+		response.setName(savedUser.getName());
+		response.setEmail(savedUser.getEmail());
+		response.setRole(savedUser.getRole());
+		response.setStatus(savedUser.getStatus());
+
+		return response;
 	}
 
 }
