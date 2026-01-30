@@ -9,5 +9,7 @@ public interface UserService {
 	UserResponse registerUser(UserRegistrationRequest request);
 	
 	UserResponse login(LoginRequest request);
+	
+	public UserResponse refreshAccessToken(String refreshTokenValue);
 
 }

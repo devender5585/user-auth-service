@@ -1,31 +1,44 @@
 package com.example.userauth.service.impl;
 
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.userauth.dto.LoginRequest;
 import com.example.userauth.dto.UserRegistrationRequest;
 import com.example.userauth.dto.UserResponse;
+import com.example.userauth.entity.RefreshToken;
 import com.example.userauth.entity.User;
 import com.example.userauth.exception.EmailAlreadyExistsException;
 import com.example.userauth.exception.InvalidCredentialsException;
+import com.example.userauth.repository.RefreshTokenRepository;
 import com.example.userauth.repository.UserRepository;
 import com.example.userauth.security.JwtUtil;
 import com.example.userauth.service.UserService;
 
 @Service
 public class UserServiceImpl implements UserService {
+	
+	
+	@Value("${jwt.refresh.expiration}")
+	private long refreshTokenExpiration;
 
 	private final UserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final JwtUtil jwtUtil ;
+	private final RefreshTokenRepository refreshTokenRepository;
 
-	public UserServiceImpl(UserRepository userRepository,
-			PasswordEncoder passwordEncoder,
-			JwtUtil jwtUtil) {
+	public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil,
+			RefreshTokenRepository refreshTokenRepository) {
+		super();
 		this.userRepository = userRepository;
 		this.passwordEncoder = passwordEncoder;
 		this.jwtUtil = jwtUtil;
+		this.refreshTokenRepository = refreshTokenRepository;
 	}
 
 	@Override
@@ -54,6 +67,7 @@ public class UserServiceImpl implements UserService {
 		return response;
 	}
 	
+	@Transactional
 	@Override
 	public UserResponse login(LoginRequest request) {
 
@@ -64,7 +78,8 @@ public class UserServiceImpl implements UserService {
 	        throw new InvalidCredentialsException("Invalid email or password");
 	    }
 
-	    String token = jwtUtil.generateToken(user.getEmail(),user.getRole());
+	    String accessToken = jwtUtil.generateToken(user.getEmail(),user.getRole());
+	    RefreshToken refreshToken = createRefreshToken(user);
 	    
 	    UserResponse response = new UserResponse();
 	    response.setId(user.getId());
@@ -72,7 +87,40 @@ public class UserServiceImpl implements UserService {
 	    response.setEmail(user.getEmail());
 	    response.setRole(user.getRole());
 	    response.setStatus(user.getStatus());
-	    response.setToken(token);
+	    response.setAccessToken(accessToken);
+
+	    response.setRefreshToken(refreshToken.getToken());;
+
+	    return response;
+	}
+	
+	private RefreshToken createRefreshToken(User user) {
+
+	    refreshTokenRepository.deleteByUserId(user.getId());
+
+	    RefreshToken refreshToken = new RefreshToken();
+	    refreshToken.setUser(user);
+	    refreshToken.setToken(UUID.randomUUID().toString());
+	    refreshToken.setExpiryTime(LocalDateTime.now().plusSeconds(refreshTokenExpiration / 1000));
+	    return refreshTokenRepository.save(refreshToken);
+	}
+
+	public UserResponse refreshAccessToken(String refreshTokenValue) {
+
+	    RefreshToken refreshToken = refreshTokenRepository
+	            .findByToken(refreshTokenValue)
+	            .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
+
+	    if (refreshToken.getExpiryTime().isBefore(LocalDateTime.now())) {
+	        throw new RuntimeException("Refresh token expired");
+	    }
+
+	    User user = refreshToken.getUser();
+
+	    UserResponse response = new UserResponse();
+	    response.setAccessToken(
+	            jwtUtil.generateToken(user.getEmail(), user.getRole())
+	    );
 
 	    return response;
 	}

@@ -20,8 +20,8 @@ public class JwtUtil {
 	@Value("${jwt.secret}")
 	private String secretKey;
 
-	@Value("${jwt.expiration}")
-	private long expirationTime;
+	@Value("${jwt.access.expiration}")
+	private long accessTokenExpiration;
 
 	private Key key;
 
@@ -35,7 +35,7 @@ public class JwtUtil {
 				.setSubject(email)
 				.claim("role", role)
 				.setIssuedAt(new Date())
-				.setExpiration(new Date(System.currentTimeMillis() + expirationTime))
+				.setExpiration(new Date(System.currentTimeMillis() + accessTokenExpiration))
 				.signWith(key)
 				.compact();
 	}
