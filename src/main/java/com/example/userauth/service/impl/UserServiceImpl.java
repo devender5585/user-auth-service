@@ -58,14 +58,13 @@ public class UserServiceImpl implements UserService {
 		
 		User savedUser = userRepository.save(user);
 
-		UserResponse response = new UserResponse();
-		response.setId(savedUser.getId());
-		response.setName(savedUser.getName());
-		response.setEmail(savedUser.getEmail());
-		response.setRole(savedUser.getRole());
-		response.setStatus(savedUser.getStatus());
-
-		return response;
+		return UserResponse.builder()
+				.id(savedUser.getId())
+				.name(savedUser.getName())
+				.email(savedUser.getEmail())
+				.role(savedUser.getRole())
+				.status(savedUser.getStatus())
+				.build();
 	}
 	
 	@Transactional
@@ -82,17 +81,15 @@ public class UserServiceImpl implements UserService {
 	    String accessToken = jwtUtil.generateToken(user.getEmail(),user.getRole());
 	    RefreshToken refreshToken = createRefreshToken(user);
 	    
-	    UserResponse response = new UserResponse();
-	    response.setId(user.getId());
-	    response.setName(user.getName());
-	    response.setEmail(user.getEmail());
-	    response.setRole(user.getRole());
-	    response.setStatus(user.getStatus());
-	    response.setAccessToken(accessToken);
-
-	    response.setRefreshToken(refreshToken.getToken());;
-
-	    return response;
+	    return UserResponse.builder()
+				.id(user.getId())
+				.name(user.getName())
+				.email(user.getEmail())
+				.role(user.getRole())
+				.status(user.getStatus())
+				.accessToken(accessToken)
+				.refreshToken(refreshToken.getToken())
+				.build();
 	}
 	
 	private RefreshToken createRefreshToken(User user) {
@@ -128,13 +125,10 @@ public class UserServiceImpl implements UserService {
 	    refreshTokenRepository.save(newRefreshToken);
 
 	    // 🔴 Issue NEW access token
-	    UserResponse response = new UserResponse();
-	    response.setAccessToken(
-	            jwtUtil.generateToken(user.getEmail(), user.getRole())
-	    );
-	    response.setRefreshToken(newRefreshToken.getToken());
-
-	    return response;
+	    return UserResponse.builder()
+				.accessToken(jwtUtil.generateToken(user.getEmail(), user.getRole()))
+				.refreshToken(newRefreshToken.getToken())
+				.build();
 	}
 
 	@Transactional
