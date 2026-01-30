@@ -125,6 +125,10 @@ public class UserServiceImpl implements UserService {
 	    return response;
 	}
 
-
+	@Transactional
+	@Override
+	public void logout(String refreshToken) {
+	    refreshTokenRepository.deleteByToken(refreshToken);
+	}
 
 }

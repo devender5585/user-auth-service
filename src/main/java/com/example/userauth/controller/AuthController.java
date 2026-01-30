@@ -1,11 +1,13 @@
 package com.example.userauth.controller;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.userauth.dto.LoginRequest;
+import com.example.userauth.dto.LogoutRequest;
 import com.example.userauth.dto.RefreshTokenRequest;
 import com.example.userauth.dto.UserRegistrationRequest;
 import com.example.userauth.dto.UserResponse;
@@ -37,6 +39,14 @@ public class AuthController {
     public UserResponse refreshToken(
            @Valid @RequestBody RefreshTokenRequest request) {
         return userService.refreshAccessToken(request.getRefreshToken());
+    }
+    
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(
+            @Valid @RequestBody LogoutRequest request) {
+
+        userService.logout(request.getRefreshToken());
+        return ResponseEntity.ok("Logged out successfully");
     }
 }
 
