@@ -15,6 +15,7 @@ import com.example.userauth.entity.RefreshToken;
 import com.example.userauth.entity.User;
 import com.example.userauth.exception.EmailAlreadyExistsException;
 import com.example.userauth.exception.InvalidCredentialsException;
+import com.example.userauth.exception.InvalidRefreshTokenException;
 import com.example.userauth.repository.RefreshTokenRepository;
 import com.example.userauth.repository.UserRepository;
 import com.example.userauth.security.JwtUtil;
@@ -105,11 +106,11 @@ public class UserServiceImpl implements UserService {
 	    return refreshTokenRepository.save(refreshToken);
 	}
 
-	public UserResponse refreshAccessToken(String refreshTokenValue) {
+	public UserResponse refreshAccessToken(String oldRefreshToken) {
 
 	    RefreshToken refreshToken = refreshTokenRepository
-	            .findByToken(refreshTokenValue)
-	            .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
+	            .findByToken(oldRefreshToken)
+	            .orElseThrow(() -> new InvalidRefreshTokenException("Invalid refresh token"));
 
 	    if (refreshToken.getExpiryTime().isBefore(LocalDateTime.now())) {
 	        throw new RuntimeException("Refresh token expired");
@@ -117,10 +118,21 @@ public class UserServiceImpl implements UserService {
 
 	    User user = refreshToken.getUser();
 
+	    refreshTokenRepository.deleteByToken(oldRefreshToken);
+	    
+	    RefreshToken newRefreshToken = new RefreshToken();
+	    newRefreshToken.setUser(user);
+	    newRefreshToken.setToken(UUID.randomUUID().toString());
+	    newRefreshToken.setExpiryTime(LocalDateTime.now().plusSeconds(refreshTokenExpiration / 1000));
+
+	    refreshTokenRepository.save(newRefreshToken);
+
+	    // 🔴 Issue NEW access token
 	    UserResponse response = new UserResponse();
 	    response.setAccessToken(
 	            jwtUtil.generateToken(user.getEmail(), user.getRole())
 	    );
+	    response.setRefreshToken(newRefreshToken.getToken());
 
 	    return response;
 	}
@@ -130,5 +142,7 @@ public class UserServiceImpl implements UserService {
 	public void logout(String refreshToken) {
 	    refreshTokenRepository.deleteByToken(refreshToken);
 	}
+	
+	
 
 }
